@@ -29,22 +29,22 @@
                 style="width: 100%;">
         <el-table-column type="selection" width="55"></el-table-column>
         <el-table-column type="index" width="60"></el-table-column>
-        <el-table-column prop="deviceId" label="设备ID" width="160" sortable></el-table-column>
+        <el-table-column prop="_id" label="设备ID" width="160" sortable></el-table-column>
         <el-table-column prop="deviceName" label="设备名称" width="160" sortable></el-table-column>
         <el-table-column prop="deviceCate" label="设备分类" width="160" sortable></el-table-column>
-        <el-table-column prop="deviceStatus" label="当前状态" width="160" sortable></el-table-column>
+        <el-table-column prop="deviceStatus" label="当前状态" width="160" :formatter="formatStatus"  sortable></el-table-column>
         <el-table-column prop="deviceRemark" label="备注" width="160" sortable></el-table-column>
         <el-table-column label="操作" >
           <template slot-scope="scope">
             <el-button size="small" @click="showEditDialog(scope.$index,scope.row)">编辑</el-button>
-            <el-button type="danger" @click="delBook(scope.$index,scope.row)" size="small">删除</el-button>
+            <el-button type="danger" @click="delDevice(scope.$index,scope.row)" size="small">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!--工具条-->
       <el-col :span="24" class="toolbar">
-        <el-button type="danger" @click="batchDeleteBook" :disabled="this.sels.length===0">批量删除</el-button>
+        <el-button type="danger" @click="batchDeleteDevice" :disabled="this.sels.length===0">批量删除</el-button>
         <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                        style="float:right;">
         </el-pagination>
@@ -52,20 +52,24 @@
 
       <el-dialog title="编辑" :visible.sync ="editFormVisible" :close-on-click-modal="false">
         <el-form :model="editForm" label-width="100px" :rules="editFormRules" ref="editForm">
-          <el-form-item label="设备ID" prop="deviceId">
-            <el-input v-model="editForm.deviceId" auto-complete="off"></el-input>
+          <el-form-item label="设备ID" prop="_d">
+            <el-input v-model="editForm._id" auto-complete="off" :disabled="true"></el-input>
           </el-form-item>
           <el-form-item label="设备名称" prop="deviceName">
             <el-input v-model="editForm.deviceName" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="设备分类" prop="deviceCate">
-            <el-input v-model="editForm.deviceCate" auto-complete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="当前状态" prop="deviceStatus">
-            <el-input v-model="editForm.deviceStatus" auto-complete="off"></el-input>
+            <el-select v-model="editForm.deviceCate" placeholder="请选择">
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="备注" prop="deviceRemark">
-            <el-input type="textarea" v-model="editForm.remark" :rows="8"></el-input>
+            <el-input type="textarea" v-model="editForm.deviceRemark" :rows="8"></el-input>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -118,9 +122,7 @@
           name: ''
         },
         books: [],
-        devices:[
-          {deviceId:"REGE0001",deviceName:"东一侧风机",deviceCate:"家庭",deviceStatus:0,deviceRemark:"无"}
-        ],
+        devices:[],
         options: [],
         value: '',
         total: 0,
@@ -132,7 +134,7 @@
         //编辑相关数据
         editFormVisible: false,//编辑界面是否显示
         editFormRules: {
-          deviceId: [
+          _id: [
             {required: true, message: '请输入设备ID', trigger: 'blur'}
           ],
           deviceName: [
@@ -146,11 +148,10 @@
           ]
         },
         editForm: {
-          deviceId:"REGE0007",
-          deviceName:"东一侧风机",
-          deviceCate:"大棚",
-          deviceStatus:0,
-          deviceRemark:"无"
+          _id:"",
+          deviceName:"",
+          deviceCate:"",
+          deviceRemark:""
         },
 
         //新增相关数据
@@ -176,6 +177,10 @@
       }
     },
     methods: {
+      //状态显示转换
+      formatStatus: function (row, column) {
+        return row.deviceStatus == 1 ? '已租' : row.deviceStatus == 0 ? '空闲' : '未知';
+      },
       //获取分类列表
       getCategoryList(){
         let that = this;
@@ -223,9 +228,10 @@
         that.loading = true;
         API.findList(params).then(function (result) {
           that.loading = false;
-          if (result && result.books) {
+          if (result && result.devices) {
             that.total = result.total;
-            that.books = result.books;
+            that.devices = result.devices;
+            console.log(that.devices);
           }
         }, function (err) {
           that.loading = false;
@@ -240,11 +246,11 @@
         this.sels = sels;
       },
       //删除
-      delBook: function (index, row) {
+      delDevice: function (index, row) {
         let that = this;
         this.$confirm('确认删除该记录吗?', '提示', {type: 'warning'}).then(() => {
           that.loading = true;
-        API.remove(row.id).then(function (result) {
+        API.remove(row._id).then(function (result) {
           that.loading = false;
           if (result && parseInt(result.errcode) === 0) {
             that.$message.success({showClose: true, message: '删除成功', duration: 1500});
@@ -265,6 +271,8 @@
       showEditDialog: function (index, row) {
         this.editFormVisible = true;
         this.editForm = Object.assign({}, row);
+        console.log(this.editForm);
+        this.getCategoryList();
       },
       //编辑
       editSubmit: function () {
@@ -273,8 +281,7 @@
           if (valid) {
             this.loading = true;
             let para = Object.assign({}, this.editForm);
-            para.publishAt = (!para.publishAt || para.publishAt == '') ? '' : util.formatDate.format(new Date(para.publishAt), 'yyyy-MM-dd');
-            API.update(para.id, para).then(function (result) {
+            API.update(para._id, para).then(function (result) {
               that.loading = false;
               if (result && parseInt(result.errcode) === 0) {
                 that.$message.success({showClose: true, message: '修改成功', duration: 2000});
@@ -318,7 +325,7 @@
                 that.$message.success({showClose: true, message: '新增成功', duration: 2000});
                 that.$refs['addForm'].resetFields();
                 that.addFormVisible = false;
-//                that.search();
+                that.search();
               } else {
                 that.$message.error({showClose: true, message: '修改失败', duration: 2000});
               }
@@ -335,14 +342,17 @@
         });
       },
       //批量删除
-      batchDeleteBook: function () {
-        let ids = this.sels.map(item => item.id).toString();
+      batchDeleteDevice: function () {
+        let ids = this.sels.map(item => item._id).toString();
+//        let ids = this.sels.map(item => item._id);
+        let param = {ids:ids};
+        console.log(param);
         let that = this;
         this.$confirm('确认删除选中记录吗？', '提示', {
           type: 'warning'
         }).then(() => {
           that.loading = true;
-        API.removeBatch(ids).then(function (result) {
+        API.removeBatch(param).then(function (result) {
           that.loading = false;
           if (result && parseInt(result.errcode) === 0) {
             that.$message.success({showClose: true, message: '删除成功', duration: 1500});
@@ -364,7 +374,7 @@
 
     },
     mounted() {
-//      this.handleSearch()
+      this.handleSearch()
     }
   }
 </script>
