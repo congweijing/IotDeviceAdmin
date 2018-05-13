@@ -34,7 +34,7 @@ deviceController.create = function (req, res) {
 
 /*根据参数获取设备列表*/
 deviceController.findList = function (req, res) {
-  console.log(req.body);
+  //console.log(req.body);
   let page = parseInt(req.body.page || 1); //页码（默认第1页）
   let limit = parseInt(req.body.limit || 10); //每页显示条数（默认10条）
   let condition = {};
@@ -91,6 +91,9 @@ deviceController.findList = function (req, res) {
             deviceItem.deviceCate = cateItem.CateName;
           }
         })
+        if(deviceItem.deviceCate == "other"){
+          deviceItem.deviceCate = "未分类";
+        }
       })
       res.json({
         total: results[0],
@@ -155,5 +158,40 @@ deviceController.deleteBatch = function(req,res){
       res.json({"errcode": 0, "errmsg": "修改成功"});
     }
   })
+}
+
+//获取status为0的设备列表
+deviceController.findListByStatus = function (req, res) {
+  let condition = {"deviceStatus":0};
+  let options = {};
+  options.sort = "deviceCate";
+  DeviceModel.find(condition,{},options,function(err,devices){
+    if(err){
+      res.json({err:err});
+    }else{
+      res.json({
+        devices: devices
+      })
+    }
+  });
+};
+//根据ids获取设备列表
+deviceController.findListByIds = function(req,res){
+  let ids = req.body.ids.split(',');
+  DeviceModel.find({"_id":{$in:ids}},function(err,devices){
+    if(err){
+      res.json({err:err});
+    }else{
+      res.json({
+        devices: devices
+      })
+    }
+  })
+};
+
+//根据IDS批量更新设备状态Status
+deviceController.updateStatusBatch = function(req,res){
+  console.log(req.body);
+  res.json({"errcode": 0, "errmsg": "修改成功"});
 }
 module.exports = deviceController;

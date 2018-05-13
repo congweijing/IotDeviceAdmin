@@ -30,7 +30,7 @@
         <el-table-column type="index" width="60">
         </el-table-column>
 
-        <el-table-column prop="userId" label="ID" width="120" sortable>
+        <el-table-column prop="_id" label="ID" width="120" sortable>
         </el-table-column>
         <el-table-column prop="userName" label="姓名" width="120" sortable>
         </el-table-column>
@@ -49,17 +49,18 @@
             </el-form>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150">
+        <el-table-column label="操作" width="220">
           <template slot-scope="scope">
+            <el-button size="small" type="success" @click="showOrderDialog(scope.$index,scope.row)">订单</el-button>
             <el-button size="small" @click="showEditDialog(scope.$index,scope.row)">编辑</el-button>
-            <el-button type="danger" @click="delBook(scope.$index,scope.row)" size="small">删除</el-button>
+            <el-button type="danger" @click="delUser(scope.$index,scope.row)" size="small">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!--工具条-->
       <el-col :span="24" class="toolbar">
-        <el-button type="danger" @click="batchDeleteBook" :disabled="this.sels.length===0">批量删除</el-button>
+        <el-button type="danger" @click="batchDeleteUser" :disabled="this.sels.length===0">批量删除</el-button>
         <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                        style="float:right;">
         </el-pagination>
@@ -67,23 +68,24 @@
 
       <el-dialog title="编辑" :visible.sync ="editFormVisible" :close-on-click-modal="false">
         <el-form :model="editForm" label-width="100px" :rules="editFormRules" ref="editForm">
-          <el-form-item label="ID" prop="userId">
-            <el-input v-model="editForm.userId" auto-complete="off"></el-input>
-          </el-form-item>
           <el-form-item label="姓名" prop="userName">
             <el-input v-model="editForm.userName" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="性别" prop="userSex">
-            <el-input v-model="editForm.userSex" auto-complete="off"></el-input>
+            <el-select v-model="editForm.userSex" placeholder="请选择">
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="联系方式" prop="userTel">
             <el-input v-model="editForm.userTel" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="联系地址" prop="userAddr">
             <el-input v-model="editForm.userAddr" auto-complete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="订单" prop="orders">
-            <el-input v-model="editForm.orders" auto-complete="off"></el-input>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -95,23 +97,24 @@
       <!--新增界面-->
       <el-dialog title="新增" :visible.sync ="addFormVisible" :close-on-click-modal="false">
         <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-          <el-form-item label="ID" prop="userId">
-            <el-input v-model="addForm.userId" auto-complete="off"></el-input>
-          </el-form-item>
           <el-form-item label="姓名" prop="userName">
             <el-input v-model="addForm.userName" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="性别" prop="userSex">
-            <el-input v-model="addForm.userSex" auto-complete="off"></el-input>
+            <el-select v-model="addForm.userSex" placeholder="请选择">
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="联系方式" prop="userTel">
             <el-input v-model="addForm.userTel" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="联系地址" prop="userAddr">
             <el-input v-model="addForm.userAddr" auto-complete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="订单" prop="orders">
-            <el-input v-model="addForm.orders" auto-complete="off"></el-input>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -120,39 +123,65 @@
         </div>
       </el-dialog>
 
+      <!--穿梭框-->
+      <el-dialog v-bind:title="orderForm.userName" :visible.sync ="orderVisible" :close-on-click-modal="false">
+        <el-transfer
+          filterable
+          :filter-method="filterMethod"
+          filter-placeholder="请输入设备名称"
+          :titles="['可选设备', '已选设备']"
+          v-model="rightData"
+          :data="leftData">
+        </el-transfer>
+
+
+        <div slot="footer" class="dialog-footer">
+          <el-button @click.native="orderVisible = false">取消</el-button>
+          <el-button type="primary" @click.native="orderSubmit" :loading="addLoading">提交</el-button>
+        </div>
+      </el-dialog>
+
     </el-col>
   </el-row>
 </template>
 <script>
   import util from '../../common/util'
-  import API from '../../api/api_book';
+  import API from '../../api/api_user';
+  import API1 from '../../api/api_devices'
 
   export default{
     data(){
+      const generateleftData = _ => {
+        const data = [];
+        const cities = ['上海', '北京', '广州', '深圳', '南京', '西安', '成都'];
+        const pinyin = ['shanghai', 'beijing', 'guangzhou', 'shenzhen', 'nanjing', 'xian', 'chengdu'];
+        cities.forEach((city, index) => {
+          data.push({
+          label: city,
+          key: city,
+          pinyin: pinyin[index]
+        });
+      });
+        return data;
+      };
       return {
         filters: {
           name: ''
         },
-        books: [],
-        users:[
-          {userId:"45678979",userName:"李志刚",userSex:"0",userTel:"15345644564",userAddr:"北京市",orders:["123456","123456"]},
-          {userId:"45678979",userName:"李志刚",userSex:"0",userTel:"15345644564",userAddr:"北京市",orders:["123456","123456"]},
-          {userId:"45678979",userName:"李志刚",userSex:"0",userTel:"15345644564",userAddr:"北京市",orders:["123456","123456"]},
-          {userId:"45678979",userName:"李志刚",userSex:"0",userTel:"15345644564",userAddr:"北京市",orders:["123456","123456"]},
-          {userId:"45678979",userName:"李志刚",userSex:"0",userTel:"15345644564",userAddr:"北京市",orders:["123456","123456"]},
-        ],
+        users:[],
         total: 0,
         page: 1,
         limit: 10,
         loading: false,
         sels: [], //列表选中列
 
+        options:[
+          {label:"男",value:0},
+          {label:"女",value:1}
+        ],
         //编辑相关数据
         editFormVisible: false,//编辑界面是否显示
         editFormRules: {
-          userId: [
-            {required: true, message: '请输入ID', trigger: 'blur'}
-          ],
           userName: [
             {required: true, message: '请输入姓名', trigger: 'blur'}
           ],
@@ -164,48 +193,107 @@
           ],
           userAddr: [
             {required: true, message: '请输入联系地址', trigger: 'blur'}
-          ],
-          orders: [
-            {required: true, message: '请选择订单', trigger: 'blur'}
           ]
         },
         editForm: {
-          userId:"45678979",
-          userName:"李志刚",
-          userSex:"0",
+          userName:"",
+          userSex:0,
           userTel:"15345644564",
-          userAddr:"北京市",
-          orders:["123456","123456"]
+          userAddr:"北京市"
         },
 
         //新增相关数据
         addFormVisible: false,//新增界面是否显示
         addLoading: false,
         addFormRules: {
-          name: [
-            {required: true, message: '请输入书名', trigger: 'blur'}
+          userName: [
+            {required: true, message: '请输入用户名', trigger: 'blur'}
           ],
-          author: [
-            {required: true, message: '请输入作者', trigger: 'blur'}
+          userSex: [
+            {required: true, message: '请选择性别', trigger: 'blur'}
           ],
-          description: [
-            {required: true, message: '请输入简介', trigger: 'blur'}
+          userTel: [
+            {required: true, message: '请输入联系方式', trigger: 'blur'}
+          ],
+          userAddr: [
+            {required: true, message: '请输入联系地址', trigger: 'blur'}
           ]
         },
         addForm: {
-          userId:"",
           userName:"",
-          userSex:"0",
+          userSex:0,
           userTel:"",
-          userAddr:"",
-          orders:[]
-        }
+          userAddr:""
+        },
+        //穿梭框相关数据
+        orderVisible:false, //穿梭框是否显示
+        leftData: [],
+        rightData: [],
+        filterMethod(query, item) {
+          return item.label.indexOf(query) > -1;
+        },
+        orderForm:{},
+        oldOrder:[]
       }
     },
     methods: {
       //性别显示转换
       formatSex: function (row, column) {
-        return row.userSex == 1 ? '男' : row.userSex == 0 ? '女' : '未知';
+        return row.userSex == 1 ? '女' : row.userSex == 0 ? '男' : '未知';
+      },
+//      获取用户订单对应的设备信息
+      getUserOrder(orderArray){
+        let ids = orderArray.toString();
+        let param = {ids:ids};
+        let that = this;
+        API1.findListByIds(param).then(function (result) {
+//          that.loading = false;
+          console.log(result.devices);
+          if(result.devices){
+            let devices = result.devices;
+            devices.forEach(function(item){
+              var data = {
+                key : item._id,
+                label : item.deviceName
+              };
+              that.rightData.push(data);
+            })
+          }
+        }, function (err) {
+          that.loading = false;
+          that.$message.error({showClose: true, message: err.toString(), duration: 2000});
+        }).catch(function (error) {
+          that.loading = false;
+          console.log(error);
+          that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
+        });
+      },
+      //获取设备列表 status为0
+      getFreeDeviceList(){
+        let that = this;
+        let params = {};
+        API1.findListByStatus(params).then(function (result) {
+          that.loading = false;
+          console.log(result.devices);
+          if(result.devices){
+            let devices = result.devices;
+            devices.forEach(function(item){
+              var data = {
+                key : item._id,
+                label : item.deviceName
+              };
+              that.leftData.push(data);
+            })
+          }
+
+        }, function (err) {
+          that.loading = false;
+          that.$message.error({showClose: true, message: err.toString(), duration: 2000});
+        }).catch(function (error) {
+          that.loading = false;
+          console.log(error);
+          that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
+        });
       },
       handleCurrentChange(val) {
         this.page = val;
@@ -227,9 +315,9 @@
         that.loading = true;
         API.findList(params).then(function (result) {
           that.loading = false;
-          if (result && result.books) {
+          if (result && result.users) {
             that.total = result.total;
-            that.books = result.books;
+            that.users = result.users;
           }
         }, function (err) {
           that.loading = false;
@@ -244,11 +332,11 @@
         this.sels = sels;
       },
       //删除
-      delBook: function (index, row) {
+      delUser: function (index, row) {
         let that = this;
         this.$confirm('确认删除该记录吗?', '提示', {type: 'warning'}).then(() => {
           that.loading = true;
-        API.remove(row.id).then(function (result) {
+        API.remove(row._id).then(function (result) {
           that.loading = false;
           if (result && parseInt(result.errcode) === 0) {
             that.$message.success({showClose: true, message: '删除成功', duration: 1500});
@@ -277,8 +365,7 @@
           if (valid) {
             this.loading = true;
             let para = Object.assign({}, this.editForm);
-            para.publishAt = (!para.publishAt || para.publishAt == '') ? '' : util.formatDate.format(new Date(para.publishAt), 'yyyy-MM-dd');
-            API.update(para.id, para).then(function (result) {
+            API.update(para._id, para).then(function (result) {
               that.loading = false;
               if (result && parseInt(result.errcode) === 0) {
                 that.$message.success({showClose: true, message: '修改成功', duration: 2000});
@@ -302,10 +389,10 @@
       showAddDialog: function () {
         this.addFormVisible = true;
         this.addForm = {
-          name: '',
-          author: '',
-          publishAt: '',
-          description: ''
+          userName:"",
+          userSex:0,
+          userTel:"",
+          userAddr:""
         };
       },
       //新增
@@ -315,7 +402,6 @@
           if (valid) {
             that.loading = true;
             let para = Object.assign({}, this.addForm);
-            para.publishAt = (!para.publishAt || para.publishAt === '') ? '' : util.formatDate.format(new Date(para.publishAt), 'yyyy-MM-dd');
             API.add(para).then(function (result) {
               that.loading = false;
               if (result && parseInt(result.errcode) === 0) {
@@ -338,15 +424,53 @@
           }
         });
       },
+      //显示oderDialog
+      showOrderDialog:function(index, row){
+        this.orderVisible = true;
+        this.orderForm = Object.assign({}, row);
+        this.oldOrder = Object.assign({}, row).userOrder;
+        console.log(this.oldOrder);
+        this.getUserOrder(this.oldOrder);
+        this.getFreeDeviceList();
+      },
+//      提交新的订单
+      orderSubmit:function(){
+        let that = this;
+        console.log(that.rightData);
+        console.log(that.oldOrder);
+
+        let ids = {"idsa":"","idsb":""};
+        ids.idsa = that.oldOrder.filter( x => that.rightData.indexOf(x) == -1).toString(); //用户删除的订单，状态status改为0
+        ids.idsb = that.rightData.filter( x => that.oldOrder.indexOf(x) == -1).toString(); //用户新增的订单，状态status改为1
+        console.log(ids);
+//        let ids = this.rightData.toString();
+//        let param = {ids:ids};
+//        API1.updateBatch(ids).then(function (result) {
+//          that.loading = false;
+//          if (result && parseInt(result.errcode) === 0) {
+//            that.$message.success({showClose: true, message: '更新成功', duration: 1500});
+//            that.search();
+//          }
+//        }, function (err) {
+//          that.loading = false;
+//          that.$message.error({showClose: true, message: err.toString(), duration: 2000});
+//        }).catch(function (error) {
+//          that.loading = false;
+//          console.log(error);
+//          that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
+//        });
+      },
+
       //批量删除
-      batchDeleteBook: function () {
-        let ids = this.sels.map(item => item.id).toString();
+      batchDeleteUser: function () {
+        let ids = this.sels.map(item => item._id).toString();
+        let param = {ids:ids};
         let that = this;
         this.$confirm('确认删除选中记录吗？', '提示', {
           type: 'warning'
         }).then(() => {
           that.loading = true;
-        API.removeBatch(ids).then(function (result) {
+        API.removeBatch(param).then(function (result) {
           that.loading = false;
           if (result && parseInt(result.errcode) === 0) {
             that.$message.success({showClose: true, message: '删除成功', duration: 1500});

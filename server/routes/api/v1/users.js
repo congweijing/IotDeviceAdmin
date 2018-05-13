@@ -1,46 +1,21 @@
-/**
- * Created by jerry on 2017/11/13.
- * users相关路由
- * 采用 restful api 风格
- */
-
 var express = require('express');
 var router = express.Router();
 var indexRouter = {};
-var adminController = require('../../../controllers/admin');
+var userController = require('../../../controllers/users');
 
-//用户登录
-router.post('/login', adminController.login);
-//用户退出
-router.get('/logout', adminController.logout);
 
-//先检查登录
-router.use(adminController.checkLogin);
-
-//更新个人部分信息
-router.patch('/profile', adminController.profile);
-//用户修改个人密码
-router.patch('/changepwd', adminController.changepwd);
-
-//返回user的集合
-router.get('/', adminController.find);
-//
-// //返回指定的user
-// router.get('/:id', adminController.findById);
-//h
-// //创建user
-// router.post('/', adminController.create);
-//
-// //更新user全部信息
-// router.put('/:id', adminController.update);
-//
-// //更新user部分信息
-// router.patch('/:id', adminController.patch);
-//
-// //删除指定的user
-// router.delete('/:id', adminController.delete);
+//获取用户列表
+router.post('/findList',userController.findList);
+//新增一条用户信息
+router.post('/add', userController.create);
+//根据ID更新用户信息
+router.put('/update/:id', userController.update);
+//通过ID删除用户
+router.delete('/delete/:id', userController.delete);
+//批量删除
+//router.delete('/batch/:ids', deviceController.deleteBatch);
+router.delete('/batch', userController.deleteBatch);
 
 indexRouter.router = router;
 
 module.exports = indexRouter;
-

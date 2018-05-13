@@ -9,7 +9,7 @@ add: params => {
   return API.POST('/api/v1/devices/add', params)
 },
 
-//获取设备列表
+//根据页码获取设备列表
 findList: params => {
   return API.POST('/api/v1/devices/findList',params)
 },
@@ -26,6 +26,18 @@ remove: id => {
 //批量删除设备
 removeBatch: params => {
   return API.DELETE(`/api/v1/devices/batch`,params)
+},
+//根据status获取设备列表
+findListByStatus: params => {
+  return API.POST('/api/v1/devices/findListByStatus',params)
+},
+//根据ids批量获取设备列表
+findListByIds: params => {
+  return API.POST('/api/v1/devices/findListByIds',params)
+},
+//根据ids批量更新设备的status
+updateStatusBatch:params => {
+  return API.POST(`/api/v1/devices/updateStatusBatch`,params)
 }
 
 }

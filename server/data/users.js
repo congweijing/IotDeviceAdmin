@@ -1,24 +1,22 @@
-const Admins = [];
-Admins.push({
-  id: 1,
-  username: 'admin', //用户名
-  name: "风车车", //姓名
-  password: '123456', //密码
-  email: 'jerry9022@qq.com', //邮箱
-  nickname: '超级管理员', //昵称
-  sex: 1, //性别
-  addr: '北京市海淀区上地七街'
-});
+var db = require('./db');
+var mongoose = db.mongoose;
 
-Admins.push({
-  id: 2,
-  username: 'staff',
-  name: "枫叶", //姓名
-  password: '123123',
-  email: '1642499350@qq.com',
-  nickname: '普通管理员',
-  sex: 1, //性别
-  addr: '北京市海淀区'
-});
+var userSchema = new mongoose.Schema({
+  //唯一键，设备ID
+  _id:{type:String,unique:true},
+  //创建时间
+  CreateTime:{type:Date},
+  //用户姓名
+  userName:{type:String},
+  //用户性别
+  userSex :{type:Number},
+  //用户联系方式
+  userTel:{type:String},
+  //用户住址
+  userAddr:{type:String},
+  //用户订单
+  userOrder:[String]
+})
+var userModel = mongoose.model('user',userSchema);
 
-module.exports = Admins;
+module.exports=userModel;

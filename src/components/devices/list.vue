@@ -121,7 +121,6 @@
         filters: {
           name: ''
         },
-        books: [],
         devices:[],
         options: [],
         value: '',
@@ -142,9 +141,6 @@
           ],
           deviceCate: [
             {required: true, message: '请输入设备分类', trigger: 'blur'}
-          ],
-          deviceStatus: [
-            {required: true, message: '请选择状态', trigger: 'blur'}
           ]
         },
         editForm: {
@@ -231,7 +227,6 @@
           if (result && result.devices) {
             that.total = result.total;
             that.devices = result.devices;
-            console.log(that.devices);
           }
         }, function (err) {
           that.loading = false;

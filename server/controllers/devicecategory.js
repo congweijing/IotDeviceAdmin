@@ -4,6 +4,7 @@
  */
 var shortid = require("shortid");
 var CategoryModel = require('../data/devicecategory');
+var DeviceModel = require('../data/devices');
 let categoryController = {};
 
 /**
@@ -72,5 +73,11 @@ categoryController.delete = function (req,res){
       res.json({"errcode": 0, "errmsg": "修改成功"});
     }
   })
+  DeviceModel.update({"deviceCate":id},{"deviceCate":"other"},{multi:true},function(err){
+    if(err){
+      console.log(err);
+    }
+  })
+
 }
 module.exports = categoryController;

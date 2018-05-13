@@ -9,50 +9,54 @@
     </el-col>
 
     <el-col :span="24" class="warp-main">
-      <el-table :data="list" style="width: 100%;padding-top: 15px;">
-        <el-table-column  label="是否完成"  width="100" align="center">
+      <el-table :data="notes" style="width: 100%;padding-top: 15px;">
+        <el-table-column type="index" width="40"></el-table-column>
+        <el-table-column prop="done" label="完成"  width="80" align="center" sortable>
           <template slot-scope="scope" >
-            <i class="el-icon-success"style="color:green;font-size:24px; " v-if="scope.row.done" @click="changedone(scope.row)"></i>
-            <i class="el-icon-success" style="font-size:24px; "  v-else  @click="changedone(scope.row)"></i>
+            <i class="el-icon-success "style="color:green;font-size:22px; " v-if="scope.row.done" ></i>
+            <i class="el-icon-success hoverAnimate" style="font-size:22px; "  v-else  @click="changedone(scope.row)"> </i>
           </template>
         </el-table-column>
-        <el-table-column prop="content" label="报修信息" show-overflow-tooltip>
+        <el-table-column prop="deviceId" label="设备ID" width="100" align="center" sortable>
         </el-table-column>
-        <el-table-column prop="deviceID" label="设备ID" width="195" align="center">
+        <el-table-column prop="connectName" label="报修人" width="100" align="center">
         </el-table-column>
-        <el-table-column prop="name" label="报修人" width="195" align="center">
+        <el-table-column prop="connectTel" label="联系方式" width="120" align="center">
         </el-table-column>
-        <el-table-column prop="time" label="登记时间" width="195" align="center">
+        <el-table-column prop="repairContent" label="报修信息" show-overflow-tooltip>
+        </el-table-column>
+        <el-table-column prop="CreateTime" label="登记时间" width="195" align="center" sortable>
         </el-table-column>
 
-        <el-table-column label="操作" align="center">
+        <el-table-column label="操作" width="100" align="center">
           <template slot-scope="scope">
-            <i class="el-icon-delete" style="font-size:24px;color:#f56c6c; "@click="delBook(scope.$index,scope.row)"></i>
+            <i class="el-icon-delete" style="font-size:24px;color:#f56c6c; "@click="delNote(scope.$index,scope.row)"></i>
           </template>
         </el-table-column>
       </el-table>
 
       <!--工具条-->
       <el-col :span="24" class="toolbar">
+        <!--<el-button type="danger" @click="batchDeleteBook" :disabled="this.sels.length===0">批量删除</el-button>-->
         <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                        style="float:right;">
         </el-pagination>
       </el-col>
-    </el-col>
+      </el-col>
   </el-row>
 </template>
 <script>
+  import util from '../../common/util'
+  import API from '../../api/api_repairs';
+
   export default{
     data(){
       return {
-        total: 0,
+        total: 10,
         page: 1,
         limit: 10,
         sels: [], //列表选中列
-        list:[
-          {content:"报修信息每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。1",deviceID:"45645646",name:"张天爱",time:"19960303",done:true},
-          {content:"报修信息每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。1",deviceID:"45645646",name:"张天爱",time:"19960303",done:false}
-        ]
+        notes:[]
       }
     },
     methods: {
@@ -73,16 +77,15 @@
         let that = this;
         let params = {
           page: that.page,
-          limit: 10,
-          name: that.filters.name
+          limit: 10
         };
 
         that.loading = true;
         API.findList(params).then(function (result) {
           that.loading = false;
-          if (result && result.books) {
+          if (result && result.notes) {
             that.total = result.total;
-            that.books = result.books;
+            that.notes = result.notes;
           }
         }, function (err) {
           that.loading = false;
@@ -99,49 +102,12 @@
       //完成报修
       changedone:function(row){
         let that = this;
-        row.done = !row.done;
-      },
-      //删除
-      delBook: function (index, row) {
-        let that = this;
-        this.$confirm('确认删除该记录吗?', '提示', {type: 'warning'}).then(() => {
-          that.loading = true;
-        API.remove(row.id).then(function (result) {
-          that.loading = false;
-          if (result && parseInt(result.errcode) === 0) {
-            that.$message.success({showClose: true, message: '删除成功', duration: 1500});
-            that.search();
-          }
-        }, function (err) {
-          that.loading = false;
-          that.$message.error({showClose: true, message: err.toString(), duration: 2000});
-        }).catch(function (error) {
-          that.loading = false;
-          console.log(error);
-          that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
-        });
-      }).catch(() => {
-        });
-      },
-      //显示编辑界面
-      showEditDialog: function (index, row) {
-        this.editFormVisible = true;
-        this.editForm = Object.assign({}, row);
-      },
-      //编辑
-      editSubmit: function () {
-        let that = this;
-        this.$refs.editForm.validate((valid) => {
-          if (valid) {
-            this.loading = true;
-            let para = Object.assign({}, this.editForm);
-            para.publishAt = (!para.publishAt || para.publishAt == '') ? '' : util.formatDate.format(new Date(para.publishAt), 'yyyy-MM-dd');
-            API.update(para.id, para).then(function (result) {
+
+            let para = {"_id":row._id,"done":1}
+            API.update(para._id, para).then(function (result) {
               that.loading = false;
               if (result && parseInt(result.errcode) === 0) {
                 that.$message.success({showClose: true, message: '修改成功', duration: 2000});
-                that.$refs['editForm'].resetFields();
-                that.editFormVisible = false;
                 that.search();
               } else {
                 that.$message.error({showClose: true, message: '修改失败', duration: 2000});
@@ -154,57 +120,13 @@
               console.log(error);
               that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
             });
-          }
-        });
       },
-      showAddDialog: function () {
-        this.addFormVisible = true;
-        this.addForm = {
-          name: '',
-          author: '',
-          publishAt: '',
-          description: ''
-        };
-      },
-      //新增
-      addSubmit: function () {
+      //删除
+      delNote: function (index, row) {
         let that = this;
-        this.$refs.addForm.validate((valid) => {
-          if (valid) {
-            that.loading = true;
-            let para = Object.assign({}, this.addForm);
-            para.publishAt = (!para.publishAt || para.publishAt === '') ? '' : util.formatDate.format(new Date(para.publishAt), 'yyyy-MM-dd');
-            API.add(para).then(function (result) {
-              that.loading = false;
-              if (result && parseInt(result.errcode) === 0) {
-                that.$message.success({showClose: true, message: '新增成功', duration: 2000});
-                that.$refs['addForm'].resetFields();
-                that.addFormVisible = false;
-                that.search();
-              } else {
-                that.$message.error({showClose: true, message: '修改失败', duration: 2000});
-              }
-            }, function (err) {
-              that.loading = false;
-              that.$message.error({showClose: true, message: err.toString(), duration: 2000});
-            }).catch(function (error) {
-              that.loading = false;
-              console.log(error);
-              that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
-            });
-
-          }
-        });
-      },
-      //批量删除
-      batchDeleteBook: function () {
-        let ids = this.sels.map(item => item.id).toString();
-        let that = this;
-        this.$confirm('确认删除选中记录吗？', '提示', {
-          type: 'warning'
-        }).then(() => {
+        this.$confirm('确认删除该记录吗?', '提示', {type: 'warning'}).then(() => {
           that.loading = true;
-        API.removeBatch(ids).then(function (result) {
+        API.remove(row._id).then(function (result) {
           that.loading = false;
           if (result && parseInt(result.errcode) === 0) {
             that.$message.success({showClose: true, message: '删除成功', duration: 1500});
@@ -219,7 +141,6 @@
           that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
         });
       }).catch(() => {
-
         });
       }
     },
@@ -235,5 +156,8 @@
   }
  .el-icon-delete:hover{
     color:green;
+  }
+  .hoverAnimate:hover{
+    color: #4dff5c;
   }
 </style>
