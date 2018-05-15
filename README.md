@@ -1,4 +1,4 @@
-# litadmin
+# lotDeviceAdmin
 > 一个基于vue2.x编写的后端管理项目
 
 ## 介绍
@@ -7,7 +7,6 @@
 ### 说明
 
 　这是一个用vuejs2.0和element-ui 2.x搭建的后台管理界面。
-  演示地址：[http://lit.ipyro.cn](http://lit.ipyro.cn)
     
 ### 项目结构
 ```
@@ -57,7 +56,7 @@ git clone https://github.com/jerry9022/LitAdmin
 第三步：启动服务端
 （1）新开一个命令行窗口
 （2）定位到项目中的server目录并安装依赖
-  > cd 你自己的位置/LitAdmin/server
+  > cd 你自己的位置/IotDeviceAdmin/server
   > npm install
 （3）依赖安装成功后执行启动命令
   > npm start 
@@ -65,11 +64,20 @@ git clone https://github.com/jerry9022/LitAdmin
   # Server is runing... Listening on port 3000
   # Listening at http://localhost:3000
   
+第四步：启动websocket服务端
+（1）新开一个命令行窗口
+（2）定位到项目中的wsserver目录并安装依赖
+  > cd 你自己的位置/IotDeviceAdmin/wsserver
+  > npm install
+（3）依赖安装成功后执行启动命令
+  > node server
+  # 显示如下内容说明服务端启动成功
+  # websocket server  Listening on port 3001
   
 第四步：启动前端
 （1）新开一个命令行窗口
 （2）定位到项目目录并安装依赖
-  > cd 你自己的位置/LitAdmin
+  > cd 你自己的位置/IotDeviceAdmin
   > npm install
 （3）依赖安装成功后执行启动命令
   > npm run dev
@@ -85,25 +93,6 @@ npm run build
 ```
 
 
-### 更新日志
-> 2017-03-26
- >> 1.接口跨域请求处理方式修改。
-  
- > 2017-02-27
- >> 1.界面部分bug修改。  
- 
- > 2017-12-13
- >> 1.去掉了canvas绘图代码。  
- >> 2.element-ui升级的2.0.7，vue版本升级到2.5.9。  
- 
- > 2017-11-13
- >> 1.去掉先前在前端写的模拟数据，增加server端提供模拟数据。  
- >> 2.代码优化。  
- 
- > 2017-09-20
- >> 1.主要组件升级：vue.js升级到v2.4.4，element-ui升级到v1.4.4，其它组件升级  
- >> 2.主界面左侧菜单栏修改，使用element-ui升级的导航组件支持折叠功能。  
- >> 3.其它调整。
 
 
 
