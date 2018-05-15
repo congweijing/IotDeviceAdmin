@@ -66,6 +66,7 @@
 
     data() {
       return {
+        ws:null,
         userTotal:0,
         deviceTotal:0,
         noteTotal:0,
@@ -93,7 +94,6 @@
         let that = this;
         let params = {}
         API1.getUserTotal(params).then(function (result) {
-          console.log(result);
           that.userTotal = result.userTotal;
         }, function (err) {
           that.$message.error({showClose: true, message: err.toString(), duration: 2000});
@@ -108,9 +108,7 @@
         API.getDeviceTotal(params).then(function (result) {
           that.deviceTotal = result.total;
           that.xAxisData = result.data.map(item => item.CateName);
-          console.log(that.xAxisData);
           that.seriesData = result.data.map(item => item.count);
-          console.log(that.seriesData);
           that.options.xAxis.data = that.xAxisData;
           that.options.series[0].data = that.seriesData;
           that.chartColumn.setOption(that.options);
@@ -125,7 +123,6 @@
         let that = this;
         let params = {}
         API2.getNoteTotal(params).then(function (result) {
-          console.log(result);
           that.noteTotal = result.NoteTotal;
         }, function (err) {
           that.$message.error({showClose: true, message: err.toString(), duration: 2000});
@@ -161,20 +158,34 @@
             load: function () {
               // set up the updating of the chart each second
               var series = this.series[0];
-              setInterval(function () {
-                let params = {}
-                API3.getValue(params).then(function (data) {
-                  var x = (new Date()).getTime();// current time
-                  var y = data.value;
-                  series.addPoint([x, y], true, true);
-                }, function (err) {
-                  that.$message.error({showClose: true, message: err.toString(), duration: 2000});
-                }).catch(function (error) {
-                  console.log(error);
-                  that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
-                });
-
-              }, 1000);
+//              setInterval(function () {
+//                let params = {}
+//                API3.getValue(params).then(function (data) {
+//                  var x = (new Date()).getTime();// current time
+//                  var y = data.value;
+//                  series.addPoint([x, y], true, true);
+//                }, function (err) {
+//                  that.$message.error({showClose: true, message: err.toString(), duration: 2000});
+//                }).catch(function (error) {
+//                  console.log(error);
+//                  that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
+//                });
+//
+//              }, 1000);
+              this.ws = new WebSocket("ws://localhost:3001/");
+              this.ws.onopen = function(){
+                console.log('websocket open');
+              }
+              this.ws.onclose = function(){
+                console.log('websocket close');
+              }
+              this.ws.onmessage = function(e){
+                var data = parseInt(e.data);
+                var x = (new Date()).getTime();// current time
+                var y = data;
+                series.addPoint([x, y], true, true);
+//                console.log(data);
+              }
             }
           }
         },
@@ -182,7 +193,7 @@
           text: '实时温度'
         },
         xAxis: {
-          type: '当前时间',
+          type: 'datetime',
           tickPixelInterval: 150
         },
         yAxis: {
@@ -226,6 +237,19 @@
           }())
         }]
       });
+
+//      this.ws = new WebSocket("ws://localhost:3001/");
+//      this.ws.onopen = function(){
+//        console.log('websocket open');
+//      }
+//      this.ws.onclose = function(){
+//        console.log('websocket close');
+//      }
+//      this.ws.onmessage = function(e){
+//        var data = parseInt(e.data)
+//        console.log(data);
+//      }
+//      this.ws.send("txt");
     }
   }
 </script>
