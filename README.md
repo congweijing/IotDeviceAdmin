@@ -1,5 +1,5 @@
 # lotDeviceAdmin
-> 一个基于vue2.x编写的后端管理项目
+> 一个基于vue2.x编写的后端管理项目，数据库使用mongoD
 
 ## 介绍
 
