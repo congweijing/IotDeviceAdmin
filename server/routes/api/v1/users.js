@@ -13,8 +13,9 @@ router.put('/update/:id', userController.update);
 //通过ID删除用户
 router.delete('/delete/:id', userController.delete);
 //批量删除
-//router.delete('/batch/:ids', deviceController.deleteBatch);
 router.delete('/batch', userController.deleteBatch);
+//获取用户总数
+router.post('/getUserTotal', userController.getUserTotal);
 
 indexRouter.router = router;
 

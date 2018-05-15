@@ -31,7 +31,7 @@
 </template>
 
 <script>
-  import API from '../../api/api_user';
+  import API from '../../api/api_account';
   import {bus} from '../../bus.js'
 
   export default {

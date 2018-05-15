@@ -10,6 +10,11 @@ add: params => {
 },
 
 //根据页码获取设备列表
+findAllList: params => {
+  return API.POST('/api/v1/devices/findAllList',params)
+},
+
+//根据页码获取设备列表
 findList: params => {
   return API.POST('/api/v1/devices/findList',params)
 },
@@ -38,6 +43,10 @@ findListByIds: params => {
 //根据ids批量更新设备的status
 updateStatusBatch:params => {
   return API.POST(`/api/v1/devices/updateStatusBatch`,params)
+},
+//获取设备总数以及不同分类下的设备数量
+getDeviceTotal: params => {
+  return API.POST('/api/v1/devices/getDeviceTotal',params)
 }
 
 }

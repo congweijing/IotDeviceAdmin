@@ -26,5 +26,10 @@ remove: id => {
 //批量删除用户
 removeBatch: params => {
   return API.DELETE(`/api/v1/users/batch`,params)
+},
+
+//获取用户总数
+getUserTotal: params => {
+  return API.POST('/api/v1/users/getUserTotal',params)
 }
 }

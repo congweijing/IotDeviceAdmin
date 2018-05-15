@@ -15,6 +15,9 @@ router.delete('/delete/:id', repairController.delete);
 //批量删除
 //router.delete('/batch/:ids', deviceController.deleteBatch);
 //router.delete('/batch', repairController.deleteBatch);
+//获取未处理总数
+router.post('/getNoteTotal', repairController.getNoteTotal);
+
 
 indexRouter.router = router;
 

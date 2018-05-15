@@ -115,4 +115,15 @@ repairController.update = function(req,res){
     }
   })
 }
+
+//获取未处理的总数
+repairController.getNoteTotal = function(req,res){
+  RepairModel.count({"done":0}, function (err, count) {
+    if (err) {
+      res.json({"errcode": 40009, "errmsg": "获取失败"});
+    } else {
+      res.json({"NoteTotal": count});
+    }
+  })
+}
 module.exports = repairController;

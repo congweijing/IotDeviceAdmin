@@ -40,15 +40,6 @@
         </el-table-column>
         <el-table-column prop="userAddr" label="地址" min-width="160" sortable>
         </el-table-column>
-        <el-table-column type="expand">
-          <template slot-scope="props">
-            <el-form label-position="left" inline class="demo-table-expand">
-              <el-form-item label="该用户所租用的产品：">
-                <span>{{ props.row.description }}</span>
-              </el-form-item>
-            </el-form>
-          </template>
-        </el-table-column>
         <el-table-column label="操作" width="220">
           <template slot-scope="scope">
             <el-button size="small" type="success" @click="showOrderDialog(scope.$index,scope.row)">订单</el-button>
@@ -124,7 +115,7 @@
       </el-dialog>
 
       <!--穿梭框-->
-      <el-dialog v-bind:title="orderForm.userName" :visible.sync ="orderVisible" :close-on-click-modal="false">
+      <el-dialog v-bind:title="orderForm.userName" :visible.sync ="orderVisible" :close-on-click-modal="false" >
         <el-transfer
           filterable
           :filter-method="filterMethod"
@@ -151,19 +142,19 @@
 
   export default{
     data(){
-      const generateleftData = _ => {
-        const data = [];
-        const cities = ['上海', '北京', '广州', '深圳', '南京', '西安', '成都'];
-        const pinyin = ['shanghai', 'beijing', 'guangzhou', 'shenzhen', 'nanjing', 'xian', 'chengdu'];
-        cities.forEach((city, index) => {
-          data.push({
-          label: city,
-          key: city,
-          pinyin: pinyin[index]
-        });
-      });
-        return data;
-      };
+//      const generateleftData = _ => {
+//        const data = [];
+//        const cities = ['上海', '北京', '广州', '深圳', '南京', '西安', '成都'];
+//        const pinyin = ['shanghai', 'beijing', 'guangzhou', 'shenzhen', 'nanjing', 'xian', 'chengdu'];
+//        cities.forEach((city, index) => {
+//          data.push({
+//          label: city,
+//          key: city,
+//          pinyin: pinyin[index]
+//        });
+//      });
+//        return data;
+//      };
       return {
         filters: {
           name: ''
@@ -228,7 +219,7 @@
         //穿梭框相关数据
         orderVisible:false, //穿梭框是否显示
         leftData: [],
-        rightData: [],
+        rightData: [],//全部的数据，左侧空闲设备数据以及右侧用户已选设备
         filterMethod(query, item) {
           return item.label.indexOf(query) > -1;
         },
@@ -256,7 +247,7 @@
                 key : item._id,
                 label : item.deviceName
               };
-              that.rightData.push(data);
+              that.leftData.push(data);
             })
           }
         }, function (err) {
@@ -271,6 +262,7 @@
       //获取设备列表 status为0
       getFreeDeviceList(){
         let that = this;
+        that.leftData = [];
         let params = {};
         API1.findListByStatus(params).then(function (result) {
           that.loading = false;
@@ -340,7 +332,7 @@
           that.loading = false;
           if (result && parseInt(result.errcode) === 0) {
             that.$message.success({showClose: true, message: '删除成功', duration: 1500});
-            that.search();
+//            that.search();
           }
         }, function (err) {
           that.loading = false;
@@ -429,6 +421,7 @@
         this.orderVisible = true;
         this.orderForm = Object.assign({}, row);
         this.oldOrder = Object.assign({}, row).userOrder;
+        this.rightData = Object.assign({}, row).userOrder;
         console.log(this.oldOrder);
         this.getUserOrder(this.oldOrder);
         this.getFreeDeviceList();
@@ -445,20 +438,45 @@
         console.log(ids);
 //        let ids = this.rightData.toString();
 //        let param = {ids:ids};
-//        API1.updateBatch(ids).then(function (result) {
-//          that.loading = false;
-//          if (result && parseInt(result.errcode) === 0) {
-//            that.$message.success({showClose: true, message: '更新成功', duration: 1500});
-//            that.search();
-//          }
-//        }, function (err) {
-//          that.loading = false;
-//          that.$message.error({showClose: true, message: err.toString(), duration: 2000});
-//        }).catch(function (error) {
-//          that.loading = false;
-//          console.log(error);
-//          that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
-//        });
+
+        this.orderForm.userOrder = that.rightData;
+        let para = Object.assign({}, this.orderForm);
+        API.update(para._id, para).then(function (result) {
+          that.loading = false;
+          if (result && parseInt(result.errcode) === 0) {
+            that.$message.success({showClose: true, message: '修改成功', duration: 2000});
+//            that.$refs['orderForm'].resetFields();
+            that.search();
+          } else {
+            that.$message.error({showClose: true, message: '修改失败', duration: 2000});
+          }
+        }, function (err) {
+          that.loading = false;
+          that.$message.error({showClose: true, message: err.toString(), duration: 2000});
+        }).catch(function (error) {
+          that.loading = false;
+          console.log(error);
+          that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
+        });
+
+
+
+
+        API1.updateStatusBatch(ids).then(function (result) {
+          that.loading = false;
+          if (result && parseInt(result.errcode) === 0) {
+            that.$message.success({showClose: true, message: '更新成功', duration: 1500});
+            that.orderVisible = false;
+            that.search();
+          }
+        }, function (err) {
+          that.loading = false;
+          that.$message.error({showClose: true, message: err.toString(), duration: 2000});
+        }).catch(function (error) {
+          that.loading = false;
+          console.log(error);
+          that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
+        });
       },
 
       //批量删除

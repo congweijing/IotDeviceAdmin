@@ -91,7 +91,8 @@ userController.update = function(req,res){
     "CreateTime":req.body.CreateTime,
     "userSex":req.body.userSex,
     "userTel":req.body.userTel,
-    "userAddr":req.body.userAddr
+    "userAddr":req.body.userAddr,
+    "userOrder":req.body.userOrder
   }
   UserModel.update(upcondition,update1,function(err){
     if(err){
@@ -130,6 +131,17 @@ userController.deleteBatch = function(req,res){
       res.json({"errcode": 40009, "errmsg": "处理失败"});
     }else{
       res.json({"errcode": 0, "errmsg": "修改成功"});
+    }
+  })
+}
+
+//获取用户总数
+userController.getUserTotal = function(req,res){
+  UserModel.count(function (err, count) {
+    if (err) {
+      res.json({"errcode": 40009, "errmsg": "获取失败"});
+    } else {
+      res.json({"userTotal": count});
     }
   })
 }

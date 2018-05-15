@@ -5,7 +5,7 @@ import Dashboard from '@/components/Dashboard'
 
 import UserList from '@/components/users/list'
 
-import UserChangePwd from '@/components/setting/changepwd'
+//import UserChangePwd from '@/components/setting/changepwd'
 import UserProfile from '@/components/setting/profile'
 
 import DeviceList from '@/components/devices/list'
@@ -78,10 +78,10 @@ let router = new Router({
       component: Home,
       name: '设置',
       menuShow: true,
+      leaf: true, // 只有一个节点
       iconCls: 'iconfont icon-setting',
       children: [
-        {path: '/setting/profile', component: UserProfile, name: '个人信息', menuShow: true},
-        {path: '/setting/changepwd', component: UserChangePwd, name: '修改密码', menuShow: true}
+        {path: '/setting/profile', component: UserProfile, name: '个人信息', menuShow: true}
       ]
     }
   ]

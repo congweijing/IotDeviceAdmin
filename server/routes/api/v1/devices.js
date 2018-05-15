@@ -3,7 +3,8 @@ var router = express.Router();
 var indexRouter = {};
 var deviceController = require('../../../controllers/devices');
 
-
+//获取所有设备
+router.post('/findAllList',deviceController.findAllList);
 //获取设备列表根据页码
 router.post('/findList',deviceController.findList);
 //新增一条设备信息
@@ -20,7 +21,8 @@ router.post('/findListByStatus',deviceController.findListByStatus);
 router.post('/findListByIds',deviceController.findListByIds);
 //根据ids批量更新设备的状态
 router.post('/updateStatusBatch',deviceController.updateStatusBatch);
-
+//获取设备总数和不同分类的设备数
+router.post('/getDeviceTotal', deviceController.getDeviceTotal);
 
 
 indexRouter.router = router;

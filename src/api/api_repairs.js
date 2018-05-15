@@ -25,6 +25,10 @@ update: (id, params) => {
 //批量删除设备
 removeBatch: params => {
   return API.DELETE(`/api/v1/repairs/batch`,params)
+},
+//获取报修记录总数
+getNoteTotal: params => {
+  return API.POST('/api/v1/repairs/getNoteTotal',params)
 }
 
 }

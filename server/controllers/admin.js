@@ -79,13 +79,13 @@ adminController.profile = function (req, res) {
   let nickname = req.body.nickname;
   let email = req.body.email;
   let name  = req.body.name;
-  let i = _.findIndex(_Users, function (u) {
+  let i = _.findIndex(_Admins, function (u) {
     return u.id === req.session.userId
   })
   if (i > -1) {
-    _Users[i].nickname = nickname;
-    _Users[i].email = email;
-    _Users[i].name = name;
+    _Admins[i].nickname = nickname;
+    _Admins[i].email = email;
+    _Admins[i].name = name;
     res.json({"errcode": 0, "errmsg": "修改成功"});
   } else {
     res.json({"errcode": 40009, "errmsg": "处理失败"});
@@ -101,32 +101,6 @@ adminController.changepwd = function (req, res) {
   //TODO 未开发
 };
 
-/**
- * 通过书名查询，获取图书列表
- * @param req
- * @param res
- */
-adminController.find = function (req, res) {
-  let page = parseInt(req.query.page || 1); //页码（默认第1页）
-  let limit = parseInt(req.query.limit || 10); //每页显示条数（默认10条）
-  let name = req.query.name || '';
-  let total = 0;
-  let rltUsers = [];
-  if (name.length > 0) {
-    let mockUsers = _Users.filter(user => {
-        return (user.username.indexOf(name) > -1 || user.nickname.indexOf(name) > -1 || user.name.indexOf(name) > -1)
-  });
-    total = mockUsers.length; //总条数
-    rltUsers = mockUsers.filter((u, index) => index < limit * page && index >= limit * (page - 1))
-  } else {
-    total = _Users.length; //总条数
-    rltUsers = _Users.filter((u, index) => index < limit * page && index >= limit * (page - 1))
-  }
-  res.json({
-    total: total,
-    limit: limit,
-    users: rltUsers
-  })
-};
+
 
 module.exports = adminController;

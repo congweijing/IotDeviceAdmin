@@ -78,7 +78,7 @@
         that.options = [];
         let params = {};
         that.loading = true;
-        API1.findList(params).then(function (result) {
+        API1.findAllList(params).then(function (result) {
           that.loading = false;
           if(result){
             let devices = result.devices;

@@ -1,8 +1,3 @@
-/**
- * Created by jerry on 2017/11/13.
- * users相关路由
- * 采用 restful api 风格
- */
 
 var express = require('express');
 var router = express.Router();
@@ -22,9 +17,6 @@ router.patch('/profile', adminController.profile);
 //用户修改个人密码
 router.patch('/changepwd', adminController.changepwd);
 
-//返回user的集合
-router.get('/', adminController.find);
-//
 // //返回指定的user
 // router.get('/:id', adminController.findById);
 //
