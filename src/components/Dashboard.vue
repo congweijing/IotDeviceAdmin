@@ -14,7 +14,6 @@
             </div>
             <div class="title">用户人数:
               <span >{{userTotal}}</span>
-              <!--<span>{{scene}}</span>-->
             </div>
           </div>
         </el-col>
@@ -43,6 +42,9 @@
           <el-col :span="12">
             <div id="chartColumn" style="width:100%; height:400px;"></div>
           </el-col>
+          <el-col :span="12">
+            <div id="container" style="width:100%; height:400px;"></div>
+          </el-col>
         </el-row>
       </section>
 
@@ -53,12 +55,15 @@
 
 <script>
   import echarts from 'echarts'
+  import Highcharts from 'highcharts'
   import util from '../common/util'
   import API from '../api/api_devices';
   import API1 from '../api/api_user';
   import API2 from '../api/api_repairs';
+  import API3 from '../api/api_test';
 
   export default {
+
     data() {
       return {
         userTotal:0,
@@ -138,11 +143,89 @@
       this.getUserTotal();
       var _this = this;
       //基于准备好的dom，初始化echarts实例
-
-
       this.chartColumn.setOption(this.options);
 
+      Highcharts.setOptions({
+        global: {
+          useUTC: false
+        }
+      });
+      var chart =Highcharts.chart('container', {
+        chart: {
+          //type: 'spline',
+          type:'line',
+          backgroundColor: '#fff',
+          animation: Highcharts.svg, // don't animate in old IE
+          marginRight: 10,
+          events: {
+            load: function () {
+              // set up the updating of the chart each second
+              var series = this.series[0];
+              setInterval(function () {
+                let params = {}
+                API3.getValue(params).then(function (data) {
+                  var x = (new Date()).getTime();// current time
+                  var y = data.value;
+                  series.addPoint([x, y], true, true);
+                }, function (err) {
+                  that.$message.error({showClose: true, message: err.toString(), duration: 2000});
+                }).catch(function (error) {
+                  console.log(error);
+                  that.$message.error({showClose: true, message: '请求出现异常', duration: 2000});
+                });
 
+              }, 1000);
+            }
+          }
+        },
+        title: {
+          text: '实时温度'
+        },
+        xAxis: {
+          type: '当前时间',
+          tickPixelInterval: 150
+        },
+        yAxis: {
+          title: {
+            text: '温度'
+          },
+          plotLines: [{
+            value: 0,
+            width: 1,
+            color: '#808080'
+          }]
+        },
+        tooltip: {
+          formatter: function () {
+            return '<b>' + this.series.name + '</b><br/>' +
+              Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+              Highcharts.numberFormat(this.y, 2);
+          }
+        },
+        legend: {
+          enabled: false
+        },
+        exporting: {
+          enabled: false
+        },
+        series: [{
+          name: 'Random data',
+          data: (function () {
+            // generate an array of random data
+            var data = [],
+              time = (new Date()).getTime(),
+              i;
+
+            for (i = -19; i <= 0; i += 1) {
+              data.push({
+                x: time + i * 1000,
+                y: Math.random()*40
+              });
+            }
+            return data;
+          }())
+        }]
+      });
     }
   }
 </script>
