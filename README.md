@@ -74,7 +74,7 @@ git clone https://github.com/jerry9022/LitAdmin
   # 显示如下内容说明服务端启动成功
   # websocket server  Listening on port 3001
   
-第四步：启动前端
+第五步：启动前端
 （1）新开一个命令行窗口
 （2）定位到项目目录并安装依赖
   > cd 你自己的位置/IotDeviceAdmin
